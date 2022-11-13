@@ -1,0 +1,5 @@
+.httr-oauth
+.Rhistory
+.Rproj.user/
+googlesheets_token.rds
+rsconnect/
