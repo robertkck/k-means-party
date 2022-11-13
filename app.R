@@ -9,15 +9,12 @@
 
 library(shiny)
 library(googlesheets)
-library(tidyverse)
-# library(ggraph)
-# library(tidygraph)
-# library(visNetwork)
-# library(igraph)
-# library(RColorBrewer)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(purrr)
 
 set.seed(1313)
-# gs_auth() 
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -41,14 +38,16 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
     
-    token <- read_rds("googlesheets_token.rds")
-    gs_auth(token)
-    party <- gs_title("30er (Responses)") %>% 
-        gs_read("Form responses 1") %>% 
-        janitor::clean_names()
-    
-    party <- party %>% 
-        select(-timestamp, -x11, name = what_is_your_name)
+    party <- read_rds("party.RDS")
+  
+    # token <- read_rds("googlesheets_token.rds")
+    # gs_auth(token)
+    # party <- gs_title("30er (Responses)") %>% 
+    #     gs_read("Form responses 1") %>% 
+    #     janitor::clean_names()
+    # 
+    # party <- party %>% 
+    #     select(-timestamp, -x11, name = what_is_your_name)
     
     distance <- party %>% 
         gather("key", "value", -name) %>% 
@@ -62,67 +61,6 @@ server <- function(input, output) {
         mutate(rank = rank(avg), z = avg - mean(avg, na.rm = T))
     
     guests <- nrow(party)
-    
-    
-    # 
-    # g %>% 
-    #     activate(edges) %>% 
-    #     arrange(desc(weight)) %>% 
-    #     filter(row_number()< 70) %>% 
-    #     distinct() %>% 
-    #     ggraph("graphopt") +
-    #         geom_edge_link(aes(width = weight, alpha = 0.1)) +
-    #         geom_node_point() +
-    #         geom_node_label(aes(label = name)) +
-    #         theme_graph()
-    
-    # observe({
-    #     n <- input$n
-    #     l <- group_list()
-    #     
-    #     groups <- tibble(group = seq(n), l) %>% 
-    #         unnest()
-    #     
-    #     g <- tbl_graph(directed = FALSE,
-    #         edges = distance %>% rename(from = item1, to = item2, weight = distance)) %>% 
-    #         left_join(groups, by = c("name" = "l"))
-    #     
-    #     colfunc <- RColorBrewer::brewer.pal(n, "Set3") # colorRampPalette(c("blue", "red"))(n)
-    #     
-    #     V(g)$col <-  colfunc[V(g)$group]
-    #     
-    #     data <- toVisNetworkData(
-    #         g %>% activate(edges) %>% 
-    #             filter(weight > quantile(weight, 0.75))
-    #     )
-    #     data$nodes <- data$nodes %>%
-    #         mutate(
-    #             label = id,
-    #             title = id,
-    #             # value = weight,
-    #             # group = members,
-    #             color = col
-    #         )
-    #     
-    #     v <- visNetwork(
-    #         nodes = data$nodes, edges = data$edges,
-    #         height = "1000px", width = "100%") %>%
-    #         visIgraphLayout() %>%
-    #         visNodes(size = 5) %>%
-    #         visOptions(highlightNearest = TRUE, selectedBy = "group",
-    #                    nodesIdSelection = TRUE, height = "100%") %>%
-    #         visInteraction(keyboard = TRUE,
-    #                        dragNodes = T,
-    #                        dragView = T,
-    #                        zoomView = T,
-    #                        navigationButtons = TRUE) %>%
-    #         visPhysics(solver = "forceAtlas2Based", forceAtlas2Based = list(gravitationalConstant = -10))
-    #     
-    #     # visSave(v, file = "visNetwork.html")
-    #     
-    #     output$v <- renderVisNetwork(v)
-    # })
-    
     
     group_list <- reactive({
         n <- input$n
@@ -161,10 +99,6 @@ server <- function(input, output) {
             output$groups <- renderText("Bitte Anzahl der Gruppen auswählen")
         }
     })
-    
-    # party <- read_rds("party.RDS")
-    
-
 }
 
 # Run the application 
